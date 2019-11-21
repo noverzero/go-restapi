@@ -1,11 +1,11 @@
 package main
 
 import(
-	// "encoding/json"
+	"encoding/json"
 	"log"
 	"net/http"
-	// "math/rand"
-	// "strconv"
+	"math/rand"
+	"strconv"
 	"github.com/gorilla/mux"
  
 )
@@ -23,18 +23,47 @@ type Author struct {
 	Lastname string `json:"lastname"`
 }
 
+//Init books variable as a slice Book struct
+
+var books []Book
+
+
+// Get all books
 func getBooks(w http.ResponseWriter, r *http.Request){
-
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(books)
 }
+
+//Get single book
 func getBook(w http.ResponseWriter, r *http.Request){
-
+	params := mux.Vars(r) // Get params
+	//Loop through books and find by id
+	for _, item := range books {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(&Book{})
 }
+
+//Create new book
 func createBook(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	var book Book
+	_ = json.NewDecoder(r.Body).Decode(&book)
+	book.ID = strconv.Itoa(rand.Intn(10000000)) //MOCK ID - Random (not safe)
+	books = append(books, book)
+	json.NewEncoder(w).Encode(book)
 
 }
+
+//Edit existing book
 func updateBook(w http.ResponseWriter, r *http.Request){
 
 }
+
+//Delete Book
 func deleteBook(w http.ResponseWriter, r *http.Request){
 
 }
@@ -43,6 +72,11 @@ func deleteBook(w http.ResponseWriter, r *http.Request){
 func main(){
 	// Init Mux Router
 	r := mux.NewRouter()
+
+	//mock data - todo - implement DB
+	books = append(books, Book{ID: "1", Isbn: "23499203", Title: "Sometimes a Great Notion", Author: &Author {Firstname: "Ken", Lastname: "Kesey"}})
+	books = append(books, Book{ID: "2", Isbn: "90998398", Title: "One Flew Over The Cuckoo's Nest", Author: &Author {Firstname: "Ken", Lastname: "Kesey"}})
+	books = append(books, Book{ID: "3", Isbn: "55434534", Title: "East of Eden", Author: &Author {Firstname: "John", Lastname: "Steinbeck"}})
 
 	// Create Route Handlers / Endpoints
 
